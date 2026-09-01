@@ -112,3 +112,37 @@ html[data-display="dim"] body{background:radial-gradient(circle at 10% 0%,#0e314
 html[data-display="dim"] .panel{box-shadow:0 8px 20px rgba(0,0,0,.22)}
 
 @media(max-width:700px){.spot-grid{grid-template-columns:1fr}.hero-tools{justify-content:flex-start;margin-top:8px}}
+
+
+/* v1.2 focused family-trip additions */
+.forecast-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;color:var(--muted);font-size:.77rem}
+.mini-button,.mini-nav{appearance:none;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:10px;padding:8px 10px;font:inherit;font-size:.77rem;font-weight:800;text-decoration:none;cursor:pointer}
+.mini-button:disabled{opacity:.55;cursor:default}
+.safety-panel{border-left:5px solid var(--accent)}
+.safety-panel[data-level="caution"]{border-left-color:var(--accent2)}
+.safety-panel[data-level="skip"]{border-left-color:var(--bad)}
+.safety-panel[data-level="skip"] h2{color:var(--bad)}
+.safety-panel p{margin-bottom:0}
+.action-grid h2{font-size:1.55rem}
+.best-window-panel,.right-now-panel{min-height:170px}
+.right-now-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.right-now-list div{background:#081d2a;border:1px solid var(--line);border-radius:12px;padding:10px}
+.right-now-list span,.right-now-list strong{display:block}
+.right-now-list span{font-size:.67rem;letter-spacing:.09em;color:var(--muted);font-weight:900;margin-bottom:4px}
+.right-now-list strong{font-size:.86rem}
+.spot-card .mini-nav{display:inline-block;margin-top:11px;align-self:flex-start}
+.memory-actions{display:flex;flex-direction:column;align-items:flex-end;gap:7px}
+.photo-check{display:flex;align-items:center;background:#081d2a;border:1px solid var(--line);border-radius:14px;padding:10px 12px;color:var(--check-text);font-size:.88rem}
+.photo-check input{margin-right:8px}
+.storage-note{font-size:.78rem;color:var(--muted);margin:12px 0 0}
+html[data-display="bright"] .right-now-list div,
+html[data-display="bright"] .photo-check{background:#edf7f9}
+html[data-display="bright"] .mini-button,
+html[data-display="bright"] .mini-nav{background:#dbeef2;color:#082230}
+@media(max-width:700px){
+  .memory-actions{align-items:flex-start}
+}
+@media(max-width:430px){
+  .right-now-list{grid-template-columns:1fr}
+  .forecast-meta{align-items:flex-start}
+}

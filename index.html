@@ -19,7 +19,7 @@
       </div>
       <div class="hero-tools">
         <button id="brightnessBtn" class="version-pill display-button" type="button" aria-label="Change display brightness mode">🌗 Auto</button>
-        <div class="version-pill">v1.1.1</div>
+        <div class="version-pill">v1.2.0</div>
       </div>
     </div>
   </header>
@@ -60,6 +60,29 @@
         <div><strong>--%</strong><span>Rain</span></div>
         <div><strong>--</strong><span>Window</span></div>
       </div>
+      <div class="forecast-meta">
+        <span id="forecastUpdated">Forecast not loaded yet</span>
+        <button id="refreshForecast" class="mini-button" type="button">↻ Refresh</button>
+      </div>
+    </section>
+
+    <section id="safetyPanel" class="panel safety-panel" hidden>
+      <div class="eyebrow">KID SAFETY CHECK</div>
+      <h2 id="safetyTitle">Conditions check</h2>
+      <p id="safetyReason"></p>
+    </section>
+
+    <section class="grid two action-grid">
+      <article class="panel best-window-panel">
+        <div class="eyebrow">⭐ BEST 90-MINUTE WINDOW</div>
+        <h2 id="bestWindow">Checking forecast…</h2>
+        <p id="bestWindowWhy">I’ll pick the best portion of your selected morning/evening window.</p>
+      </article>
+      <article class="panel right-now-panel">
+        <div class="eyebrow">🎣 WHAT I’D DO RIGHT NOW</div>
+        <h2 id="rightNowSpot">Start here</h2>
+        <div id="rightNowPlan" class="right-now-list"></div>
+      </article>
     </section>
 
     <section class="grid two">
@@ -153,14 +176,28 @@
           <div class="eyebrow">MEMORY LOG</div>
           <h2>What do we want to remember?</h2>
         </div>
-        <span class="muted">Saved on this phone</span>
+        <div class="memory-actions">
+          <span class="muted">Saved on this device</span>
+          <button id="exportMemories" class="mini-button" type="button">Export Memories</button>
+        </div>
       </div>
       <form id="memoryForm" class="memory-form">
         <input id="memoryKid" placeholder="Kid / trip name" maxlength="40">
         <input id="memoryCatch" placeholder="Best catch or moment" maxlength="80">
+        <input id="memoryFishCount" type="number" min="0" max="99" inputmode="numeric" placeholder="Fish caught">
+        <select id="memoryRating" aria-label="Kid rating">
+          <option value="">Kid rating ⭐</option>
+          <option value="5">⭐⭐⭐⭐⭐</option>
+          <option value="4">⭐⭐⭐⭐</option>
+          <option value="3">⭐⭐⭐</option>
+          <option value="2">⭐⭐</option>
+          <option value="1">⭐</option>
+        </select>
+        <label class="photo-check"><input id="memoryPhoto" type="checkbox"> 📸 Photo taken</label>
         <textarea id="memoryNote" placeholder="Funny quote, something we talked about, what made today special…" maxlength="300"></textarea>
         <button class="button primary" type="submit">Save Memory</button>
       </form>
+      <p class="storage-note">Memories stay in this browser/app on this device. Export a backup occasionally so clearing site data or changing phones doesn’t erase them.</p>
       <div id="memoryList" class="memory-list"></div>
     </section>
 
@@ -175,7 +212,7 @@
   </main>
 
   <footer>
-    Dad + Kids Bank Fishing • v1.1.1 • Weather powered by Open-Meteo • Built for phone use
+    Dad + Kids Bank Fishing • v1.2.0 • Weather powered by Open-Meteo • Built for phone use
   </footer>
 
   <script src="app.js"></script>

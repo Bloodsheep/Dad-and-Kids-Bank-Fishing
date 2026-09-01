@@ -1,5 +1,5 @@
 
-const CACHE="dad-kids-fishing-v1.1.1";
+const CACHE="dad-kids-fishing-v1.2.0";
 const ASSETS=["./","./index.html","./styles.css","./app.js","./manifest.webmanifest"];
 self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));
 self.addEventListener("fetch",e=>{

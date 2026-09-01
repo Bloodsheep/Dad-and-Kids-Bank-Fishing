@@ -224,6 +224,15 @@ const spots = [
   }
 ];
 
+const dadRigBySpot = {
+  "river-grove":"Small white/silver Road Runner or spoon",
+  "deussen":"Small jig or Road Runner along pier/shoreline edges",
+  "stubblefield":"Small shad-style jig or spoon across the current seam",
+  "livingston":"Small silver spoon or white Road Runner for white bass",
+  "huntsville":"Small topwater at low light, then a soft plastic by vegetation",
+  "lhwp":"Small spinner or jig through creek bends/current seams"
+};
+
 const $ = s => document.querySelector(s);
 const locSel = $("#locationSelect");
 const dateSel = $("#dateSelect");
@@ -280,10 +289,20 @@ function formatHour(h){
   const suffix=h>=12?"PM":"AM";
   const n=h%12||12; return `${n} ${suffix}`;
 }
+function usableWindowStats(s,dateObj,weather){
+  const window=calcAccessWindow(s,dateObj);
+  if(!weather?.hours || !window) return weather || null;
+  const rows=weather.hours.filter(h=>h.hour>=window[0] && h.hour<window[1]);
+  if(!rows.length) return weather;
+  const avg=k=>Math.round(rows.reduce((a,v)=>a+(Number(v[k])||0),0)/rows.length);
+  const max=k=>Math.round(Math.max(...rows.map(v=>Number(v[k])||0)));
+  return {...weather,temp:avg("temp"),wind:avg("wind"),rain:max("rain"),feels:max("feels"),gust:max("gust")};
+}
 function scoreConditions(s, datum, dateObj){
   let score=70;
   if(!datum) return 62;
-  const wind=datum.wind ?? 8, rain=datum.rain ?? 0, temp=datum.temp ?? 75;
+  const usable=usableWindowStats(s,dateObj,datum) || datum;
+  const wind=usable.wind ?? 8, rain=usable.rain ?? 0, temp=usable.temp ?? 75;
   if(wind<=8) score+=8; else if(wind<=14) score+=3; else if(wind>=20) score-=18; else score-=6;
   if(rain<=20) score+=5; else if(rain>=60) score-=20; else score-=6;
   if(temp>=55 && temp<=88) score+=6; else if(temp>96 || temp<42) score-=15; else score-=4;
@@ -303,6 +322,23 @@ function scoreLabel(n){
   return["Choose another spot/window","Access or weather makes this a lower-confidence kid trip."];
 }
 function mapsLink(s){return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.address)}`}
+function spotMapsLink(s,spot){
+  const query=`${spot.name}, ${s.name}, ${s.address}`;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
+function formatClockDecimal(h){
+  const whole=Math.floor(h);
+  const minutes=Math.round((h-whole)*60);
+  const hour24=(whole + Math.floor(minutes/60))%24;
+  const min=minutes%60;
+  const suffix=hour24>=12?"PM":"AM";
+  return `${hour24%12||12}:${String(min).padStart(2,"0")} ${suffix}`;
+}
+function timeDecimalFromIso(iso){
+  if(!iso) return null;
+  const d=new Date(iso);
+  return d.getHours()+d.getMinutes()/60;
+}
 
 function setDisplayMode(mode, statusText){
   displayMode=mode;
@@ -339,27 +375,113 @@ function updateAutoDisplayFromSun(weather,dateObj){
   if(btn) btn.textContent=`🌗 Auto • ${low?"Low light":"Daylight"}`;
 }
 
-async function fetchWeather(s,dateObj){
+async function fetchWeather(s,dateObj,force=false){
   const key=`${s.id}-${ymd(dateObj)}-${period}`;
-  if(weatherCache[key]) return weatherCache[key];
+  if(!force && weatherCache[key]) return weatherCache[key];
   const date=ymd(dateObj);
-  const url=`https://api.open-meteo.com/v1/forecast?latitude=${s.lat}&longitude=${s.lon}&hourly=temperature_2m,precipitation_probability,wind_speed_10m&daily=sunrise,sunset&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FChicago&start_date=${date}&end_date=${date}`;
+  const url=`https://api.open-meteo.com/v1/forecast?latitude=${s.lat}&longitude=${s.lon}&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m,wind_gusts_10m&daily=sunrise,sunset&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FChicago&start_date=${date}&end_date=${date}`;
   try{
-    const r=await fetch(url); const j=await r.json();
+    const r=await fetch(url,{cache:"no-store"});
+    if(!r.ok) throw new Error(`Forecast request failed: ${r.status}`);
+    const j=await r.json();
     const desired=period==="morning"?[5,10]:[17,22];
     const vals=[];
+    const allHours=[];
     j.hourly.time.forEach((t,i)=>{
       const hr=Number(t.slice(11,13));
-      if(hr>=desired[0] && hr<desired[1]) vals.push({
+      const row={
+        time:t,
+        hour:hr,
         temp:j.hourly.temperature_2m[i],
+        feels:j.hourly.apparent_temperature[i],
         rain:j.hourly.precipitation_probability[i],
-        wind:j.hourly.wind_speed_10m[i]
-      });
+        code:j.hourly.weather_code[i],
+        wind:j.hourly.wind_speed_10m[i],
+        gust:j.hourly.wind_gusts_10m[i]
+      };
+      allHours.push(row);
+      if(hr>=desired[0] && hr<desired[1]) vals.push(row);
     });
-    const avg=k=>Math.round(vals.reduce((a,v)=>a+(v[k]??0),0)/Math.max(1,vals.length));
-    const d={temp:avg("temp"),rain:Math.max(...vals.map(v=>v.rain??0)),wind:avg("wind"),sunrise:j.daily?.sunrise?.[0],sunset:j.daily?.sunset?.[0]};
-    weatherCache[key]=d; return d;
-  }catch(e){return null;}
+    const avg=k=>Math.round(vals.reduce((a,v)=>a+(Number(v[k])||0),0)/Math.max(1,vals.length));
+    const max=k=>Math.round(Math.max(...vals.map(v=>Number(v[k])||0)));
+    const d={
+      temp:avg("temp"),
+      feels:max("feels"),
+      rain:max("rain"),
+      wind:avg("wind"),
+      gust:max("gust"),
+      sunrise:j.daily?.sunrise?.[0],
+      sunset:j.daily?.sunset?.[0],
+      hours:allHours,
+      fetchedAt:Date.now()
+    };
+    weatherCache[key]=d;
+    return d;
+  }catch(e){
+    console.warn(e);
+    return null;
+  }
+}
+
+function bestNinetyMinuteWindow(s,dateObj,weather){
+  const access=calcAccessWindow(s,dateObj);
+  if(!weather?.hours || !access) return null;
+  const [start,end]=access;
+  const target=timeDecimalFromIso(period==="morning"?weather.sunrise:weather.sunset);
+  const desiredTarget=target==null ? (period==="morning"?7:19) : (period==="morning"?target+.25:target-.75);
+  let best=null;
+  for(const h of weather.hours){
+    const hs=h.hour;
+    if(hs<start || hs+1.5>end) continue;
+    let q=100;
+    q-=Math.max(0,(Number(h.rain)||0)-15)*0.42;
+    q-=Math.max(0,(Number(h.wind)||0)-7)*2.1;
+    q-=Math.max(0,(Number(h.gust)||0)-18)*0.7;
+    const feels=Number(h.feels)||Number(h.temp)||75;
+    if(feels>90) q-=(feels-90)*1.4;
+    if(feels<48) q-=(48-feels)*1.1;
+    q-=Math.abs(hs-desiredTarget)*5;
+    if([95,96,99].includes(Number(h.code))) q-=80;
+    if(!best || q>best.q) best={q,start:hs,end:hs+1.5,hour:h};
+  }
+  return best;
+}
+
+function evaluateSafety(s,dateObj,weather){
+  const access=calcAccessWindow(s,dateObj);
+  if(!weather?.hours || !access) return {level:"unknown",reasons:[]};
+  const rows=weather.hours.filter(h=>h.hour>=access[0] && h.hour<access[1]);
+  if(!rows.length) return {level:"unknown",reasons:[]};
+  const thunder=rows.some(h=>[95,96,99].includes(Number(h.code)));
+  const maxFeels=Math.max(...rows.map(h=>Number(h.feels)||0));
+  const maxGust=Math.max(...rows.map(h=>Number(h.gust)||0));
+  const maxWind=Math.max(...rows.map(h=>Number(h.wind)||0));
+  const maxRain=Math.max(...rows.map(h=>Number(h.rain)||0));
+  const hard=[], caution=[];
+  if(thunder) hard.push("Thunderstorm/lightning risk appears in the selected fishing window.");
+  if(maxFeels>=105) hard.push(`Feels-like temperature reaches about ${Math.round(maxFeels)}°F.`);
+  if(maxGust>=35 || maxWind>=25) hard.push(`Wind may be too strong for a comfortable kid bank-fishing trip (gusts around ${Math.round(maxGust)} mph).`);
+  if(maxRain>=85) hard.push(`Rain probability reaches about ${Math.round(maxRain)}%.`);
+  if(!hard.length){
+    if(maxFeels>=98) caution.push(`Hot for the kids: feels-like temperature may reach ${Math.round(maxFeels)}°F.`);
+    if(maxGust>=25) caution.push(`Breezy: gusts may reach ${Math.round(maxGust)} mph.`);
+    if(maxRain>=60) caution.push(`Rain chance reaches about ${Math.round(maxRain)}%.`);
+  }
+  if(hard.length) return {level:"skip",reasons:hard};
+  if(caution.length) return {level:"caution",reasons:caution};
+  return {level:"good",reasons:["No major weather red flags detected in the usable fishing window."]};
+}
+
+function chooseActionSpot(s,weather,dateObj){
+  const spots=s.bestSpots||[];
+  if(!spots.length) return null;
+  const safety=evaluateSafety(s,dateObj,weather);
+  if(safety.level==="skip") return spots[0];
+  if(weather?.wind>=15){
+    const protected=spots.find(x=>/protected|shade|cove|pocket/i.test(`${x.name} ${x.why}`));
+    if(protected) return protected;
+  }
+  return spots[0];
 }
 
 function renderSpot(s,dateObj,weather){
@@ -380,6 +502,7 @@ function renderSpot(s,dateObj,weather){
     <h3>${escapeHtml(x.name)}</h3>
     <p>${escapeHtml(x.why)}</p>
     <div class="spot-meta"><strong>Target:</strong> ${escapeHtml(x.target)}<br><strong>Cast:</strong> ${escapeHtml(x.cast)}</div>
+    <a class="mini-nav" target="_blank" rel="noopener" href="${spotMapsLink(s,x)}">Navigate to this area →</a>
   </article>`).join("");
 
   const month=dateObj.getMonth()+1;
@@ -390,25 +513,64 @@ function renderSpot(s,dateObj,weather){
   }).join("");
 
   const window=calcAccessWindow(s,dateObj);
-  const score=scoreConditions(s,weather,dateObj);
-  const [lab,reason]=scoreLabel(score);
+  const safety=evaluateSafety(s,dateObj,weather);
+  let score=scoreConditions(s,weather,dateObj);
+  if(safety.level==="skip") score=Math.min(score,35);
+  const [lab0,reason0]=scoreLabel(score);
+  const lab=safety.level==="skip"?"Skip this window with the kids":lab0;
+  const reason=safety.level==="skip"?safety.reasons[0]:reason0;
   $("#scoreNumber").textContent=score;
   $("#scoreLabel").textContent=lab;
   $("#scoreReason").textContent=reason;
   $("#scoreRing").style.background=`conic-gradient(var(--accent) ${score*3.6}deg,var(--ring-track) 0deg)`;
-  const w=weather||{};
+
+  const w=usableWindowStats(s,dateObj,weather)||weather||{};
   const winText=window?`${formatHour(window[0])}–${formatHour(window[1])}`:"No overlap";
   $("#weatherStrip").innerHTML=`
     <div><strong>${w.temp??"--"}°</strong><span>Avg temp</span></div>
     <div><strong>${w.wind??"--"} mph</strong><span>Avg wind</span></div>
     <div><strong>${w.rain??"--"}%</strong><span>Max rain</span></div>
     <div><strong>${winText}</strong><span>Usable access</span></div>`;
+
+  const safePanel=$("#safetyPanel");
+  if(weather && safety.level!=="unknown"){
+    safePanel.hidden=false;
+    safePanel.dataset.level=safety.level;
+    $("#safetyTitle").textContent=safety.level==="skip"?"SKIP THIS WINDOW WITH THE KIDS":safety.level==="caution"?"Use a little extra judgment":"Looks family-friendly";
+    $("#safetyReason").textContent=safety.reasons.join(" ");
+  } else {
+    safePanel.hidden=true;
+  }
+
+  const best=bestNinetyMinuteWindow(s,dateObj,weather);
+  if(best){
+    $("#bestWindow").textContent=`${formatClockDecimal(best.start)}–${formatClockDecimal(best.end)}`;
+    const sunWord=period==="morning"?"first light":"sunset";
+    $("#bestWindowWhy").textContent=`Best blend of access, ${sunWord}, wind, rain and temperature inside your selected window.`;
+  } else {
+    $("#bestWindow").textContent=window?"Use the full available window":"No usable park-access overlap";
+    $("#bestWindowWhy").textContent=weather?"There wasn’t enough forecast/access overlap to isolate a full 90-minute block.":"Waiting for forecast data.";
+  }
+
+  const actionSpot=chooseActionSpot(s,weather,dateObj) || (s.bestSpots||[])[0];
+  if(actionSpot){
+    $("#rightNowSpot").textContent=actionSpot.name;
+    $("#rightNowPlan").innerHTML=`
+      <div><span>KIDS</span><strong>${escapeHtml(s.bait)}</strong></div>
+      <div><span>DAD</span><strong>${escapeHtml(dadRigBySpot[s.id]||"Small jig or spinner")}</strong></div>
+      <div><span>CAST</span><strong>${escapeHtml(actionSpot.cast)}</strong></div>
+      <div><span>MOVE</span><strong>15–20 min without bites</strong></div>`;
+  }
+
+  $("#forecastUpdated").textContent=weather?.fetchedAt
+    ? `Forecast updated ${new Date(weather.fetchedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`
+    : "Forecast unavailable — tap Refresh";
 }
-async function refresh(){
+async function refresh(force=false){
   const s=spots.find(x=>x.id===locSel.value)||spots[0];
   const d=getDateFromChoice();
   renderSpot(s,d,null);
-  const w=await fetchWeather(s,d);
+  const w=await fetchWeather(s,d,force);
   renderSpot(s,d,w);
   updateAutoDisplayFromSun(w,d);
 }
@@ -420,26 +582,64 @@ document.querySelectorAll(".seg").forEach(b=>b.addEventListener("click",()=>{
 }));
 
 $("#brightnessBtn")?.addEventListener("click",cycleDisplayMode);
+$("#refreshForecast")?.addEventListener("click",()=>{
+  const btn=$("#refreshForecast");
+  btn.disabled=true;
+  btn.textContent="Refreshing…";
+  refresh(true).finally(()=>{
+    btn.disabled=false;
+    btn.textContent="↻ Refresh";
+  });
+});
 setDisplayMode(displayMode);
 setInterval(()=>{ if(displayMode==="auto") setDisplayMode("auto"); }, 5*60*1000);
 
 function renderMemories(){
   const items=JSON.parse(localStorage.getItem("kidFishingMemories")||"[]");
-  $("#memoryList").innerHTML=items.length?items.slice().reverse().map(m=>`
-    <div class="memory-entry"><strong>${escapeHtml(m.kid)} — ${escapeHtml(m.catch)}</strong>
-    <small>${escapeHtml(m.date)} • ${escapeHtml(m.spot)}</small>
-    <p>${escapeHtml(m.note)}</p></div>`).join(""):`<p class="muted">No memories saved yet. That’s what the next trip is for.</p>`;
+  $("#memoryList").innerHTML=items.length?items.slice().reverse().map(m=>{
+    const extras=[];
+    if(m.fishCount!==undefined && m.fishCount!=="") extras.push(`${escapeHtml(m.fishCount)} fish`);
+    if(m.rating) extras.push(`${"⭐".repeat(Number(m.rating))}`);
+    if(m.photo) extras.push("📸 photo");
+    return `<div class="memory-entry"><strong>${escapeHtml(m.kid)} — ${escapeHtml(m.catch)}</strong>
+    <small>${escapeHtml(m.date)} • ${escapeHtml(m.spot)}${extras.length?` • ${extras.join(" • ")}`:""}</small>
+    <p>${escapeHtml(m.note)}</p></div>`;
+  }).join(""):`<p class="muted">No memories saved yet. That’s what the next trip is for.</p>`;
 }
 function escapeHtml(s){return String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
 $("#memoryForm").addEventListener("submit",e=>{
   e.preventDefault();
-  const kid=$("#memoryKid").value.trim(), catchx=$("#memoryCatch").value.trim(), note=$("#memoryNote").value.trim();
+  const kid=$("#memoryKid").value.trim();
+  const catchx=$("#memoryCatch").value.trim();
+  const note=$("#memoryNote").value.trim();
+  const fishCount=$("#memoryFishCount").value;
+  const rating=$("#memoryRating").value;
+  const photo=$("#memoryPhoto").checked;
   if(!kid || !catchx) return;
   const s=spots.find(x=>x.id===locSel.value)||spots[0];
   const items=JSON.parse(localStorage.getItem("kidFishingMemories")||"[]");
-  items.push({kid,catch:catchx,note,spot:s.name,date:new Date().toLocaleDateString()});
+  items.push({kid,catch:catchx,note,fishCount,rating,photo,spot:s.name,date:new Date().toLocaleDateString()});
   localStorage.setItem("kidFishingMemories",JSON.stringify(items));
-  e.target.reset(); renderMemories();
+  e.target.reset();
+  renderMemories();
+});
+$("#exportMemories")?.addEventListener("click",()=>{
+  const items=JSON.parse(localStorage.getItem("kidFishingMemories")||"[]");
+  const payload={
+    app:"Dad + Kids Bank Fishing",
+    version:"1.2.0",
+    exportedAt:new Date().toISOString(),
+    memories:items
+  };
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=`dad-kids-fishing-memories-${ymd(new Date())}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
 if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 renderMemories();

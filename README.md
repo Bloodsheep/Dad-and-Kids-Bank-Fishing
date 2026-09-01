@@ -1,4 +1,4 @@
-# Dad + Kids Bank Fishing Dashboard — v1.1.1
+# Dad + Kids Bank Fishing Dashboard — v1.2.0
 
 A phone-first static fishing dashboard built for bank fishing around Kingwood / north Houston.
 
@@ -43,3 +43,17 @@ The fishing score is intentionally a practical family-trip heuristic, not a pred
 Official reference links are embedded in the app. Park hours and access can change; posted signs and official notices win.
 
 Weather: Open-Meteo (no API key required).
+
+
+## Memory storage and backup
+The Memory Log uses the browser's `localStorage` for the deployed site's web address. Memories are not committed to GitHub and are not automatically synced to other devices. They normally survive normal refreshes and dashboard updates at the same URL, but clearing site/browser data, changing domains, or removing app/browser data can erase them.
+
+Use **Export Memories** in the dashboard to download a JSON backup periodically.
+
+## v1.2 trip-decision features
+- Best 90-minute fishing block inside the chosen morning/evening and park-access window.
+- Simple family safety override for thunderstorm risk, extreme heat, strong wind/gusts and very high rain probability.
+- “What I'd do right now” card with kid rig, Dad rig, casting target and move rule.
+- Forecast refresh timestamp and manual refresh control.
+- Navigation search buttons on Start Here / Try Next / Backup bank areas.
+- Memory fields for fish caught, kid rating and whether a photo was taken.
