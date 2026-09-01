@@ -1,0 +1,9 @@
+{
+  "name": "Dad + Kids Bank Fishing",
+  "short_name": "Kid Fishing",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#071722",
+  "theme_color": "#0b2233",
+  "description": "Kid-friendly bank fishing trip planner for Kingwood and north Houston."
+}

@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b2233" />
+  <meta name="description" content="Kid-friendly bank fishing planner for the Kingwood / north Houston area." />
+  <title>Dad + Kids Bank Fishing</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">DAD + KIDS • BANK FISHING</div>
+        <h1>Pick a place. Catch something. Make a memory.</h1>
+        <p>Built for quick shore-fishing trips around Kingwood / north Houston — with practical early-morning and evening windows only.</p>
+      </div>
+      <div class="version-pill">v1.0.0</div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="panel controls-panel">
+      <div class="control">
+        <label for="locationSelect">Fishing spot</label>
+        <select id="locationSelect"></select>
+      </div>
+      <div class="control">
+        <label for="dateSelect">Trip day</label>
+        <select id="dateSelect">
+          <option value="0">Today</option>
+          <option value="1">Tomorrow</option>
+          <option value="sat">This Saturday</option>
+          <option value="sun">This Sunday</option>
+        </select>
+      </div>
+      <div class="segmented" aria-label="Fishing time">
+        <button class="seg active" data-period="morning">🌅 Morning</button>
+        <button class="seg" data-period="evening">🌇 Evening</button>
+      </div>
+    </section>
+
+    <section class="panel score-panel">
+      <div class="score-wrap">
+        <div id="scoreRing" class="score-ring"><span id="scoreNumber">--</span></div>
+        <div>
+          <div class="eyebrow">FAMILY FISHING SCORE</div>
+          <h2 id="scoreLabel">Loading conditions…</h2>
+          <p id="scoreReason">Checking weather and access window.</p>
+        </div>
+      </div>
+      <div id="weatherStrip" class="weather-strip">
+        <div><strong>--°</strong><span>Temp</span></div>
+        <div><strong>-- mph</strong><span>Wind</span></div>
+        <div><strong>--%</strong><span>Rain</span></div>
+        <div><strong>--</strong><span>Window</span></div>
+      </div>
+    </section>
+
+    <section class="grid two">
+      <article class="panel">
+        <div class="section-title">
+          <div>
+            <div class="eyebrow">THE PLAN</div>
+            <h2 id="spotName">—</h2>
+          </div>
+          <span id="fitBadge" class="badge">—</span>
+        </div>
+        <p id="spotSummary" class="lead"></p>
+        <div class="info-grid">
+          <div class="info-card"><span>🎯 Best target</span><strong id="bestTarget">—</strong></div>
+          <div class="info-card"><span>🪱 Start with</span><strong id="startBait">—</strong></div>
+          <div class="info-card"><span>📍 Fish here</span><strong id="fishZone">—</strong></div>
+          <div class="info-card"><span>⏱ Move rule</span><strong>15–20 min without bites</strong></div>
+        </div>
+        <div class="buttons">
+          <a id="mapsBtn" class="button primary" target="_blank" rel="noopener">Open Directions</a>
+          <a id="sourceBtn" class="button" target="_blank" rel="noopener">Official Info</a>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="eyebrow">KID SUCCESS PLAN</div>
+        <h2>Keep rods bending</h2>
+        <ol id="kidPlan" class="steps"></ol>
+        <div class="callout">
+          <strong>Dad rule:</strong> If the “cool” fish aren’t cooperating, switch to the highest-probability bite. A 5-inch bluegill still counts as a great morning.
+        </div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">
+        <div>
+          <div class="eyebrow">WHAT CAN WE CATCH?</div>
+          <h2>Target board</h2>
+        </div>
+        <span class="muted">Season-aware</span>
+      </div>
+      <div id="fishCards" class="fish-grid"></div>
+    </section>
+
+    <section class="grid two">
+      <article class="panel">
+        <div class="eyebrow">PACK LIGHT</div>
+        <h2>One-bank-bag setup</h2>
+        <div class="check-grid">
+          <label><input type="checkbox"> Small hooks (#6–#10)</label>
+          <label><input type="checkbox"> Bobbers</label>
+          <label><input type="checkbox"> Split shot</label>
+          <label><input type="checkbox"> Nightcrawlers / worms</label>
+          <label><input type="checkbox"> Small jigs / Road Runners</label>
+          <label><input type="checkbox"> Small spoons</label>
+          <label><input type="checkbox"> Catfish rig + bait</label>
+          <label><input type="checkbox"> Pliers + line cutters</label>
+          <label><input type="checkbox"> Water + kid snacks</label>
+          <label><input type="checkbox"> Bug spray</label>
+          <label><input type="checkbox"> Headlamps</label>
+          <label><input type="checkbox"> Small first-aid kit</label>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="eyebrow">BEFORE YOU LEAVE</div>
+        <h2>Access + safety</h2>
+        <ul id="accessList" class="plain-list"></ul>
+        <div class="callout warning">
+          Shorelines around Houston-area lakes can have alligators, snakes, steep/muddy banks and sudden water-level changes. Keep the kids beside you and away from the water’s edge unless you’re actively helping them fish.
+        </div>
+      </article>
+    </section>
+
+    <section class="panel memory-panel">
+      <div class="section-title">
+        <div>
+          <div class="eyebrow">MEMORY LOG</div>
+          <h2>What do we want to remember?</h2>
+        </div>
+        <span class="muted">Saved on this phone</span>
+      </div>
+      <form id="memoryForm" class="memory-form">
+        <input id="memoryKid" placeholder="Kid / trip name" maxlength="40">
+        <input id="memoryCatch" placeholder="Best catch or moment" maxlength="80">
+        <textarea id="memoryNote" placeholder="Funny quote, something we talked about, what made today special…" maxlength="300"></textarea>
+        <button class="button primary" type="submit">Save Memory</button>
+      </form>
+      <div id="memoryList" class="memory-list"></div>
+    </section>
+
+    <section class="panel source-panel">
+      <div class="eyebrow">QUICK REGULATION REMINDER</div>
+      <p>Texas statewide white bass: <strong>25/day, 10-inch minimum</strong>. Freshwater rules and waterbody exceptions still apply. State-park fishing from bank/pier can have license exceptions; always use the official link for the specific trip.</p>
+      <div class="buttons">
+        <a class="button" target="_blank" rel="noopener" href="https://tpwd.texas.gov/regulations/outdoor-annual/fishing/freshwater-fishing/bag-length-limits">Texas Freshwater Limits</a>
+        <a class="button" target="_blank" rel="noopener" href="https://tpwd.texas.gov/regulations/outdoor-annual/fishing/freshwater-fishing/freshwater-fishing-laws-and-exceptions">Waterbody Exceptions</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Dad + Kids Bank Fishing • v1.0.0 • Weather powered by Open-Meteo • Built for phone use
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
