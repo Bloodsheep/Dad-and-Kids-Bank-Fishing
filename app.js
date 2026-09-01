@@ -395,7 +395,7 @@ function renderSpot(s,dateObj,weather){
   $("#scoreNumber").textContent=score;
   $("#scoreLabel").textContent=lab;
   $("#scoreReason").textContent=reason;
-  $("#scoreRing").style.background=`conic-gradient(var(--accent) ${score*3.6}deg,#183b4e 0deg)`;
+  $("#scoreRing").style.background=`conic-gradient(var(--accent) ${score*3.6}deg,var(--ring-track) 0deg)`;
   const w=weather||{};
   const winText=window?`${formatHour(window[0])}–${formatHour(window[1])}`:"No overlap";
   $("#weatherStrip").innerHTML=`

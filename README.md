@@ -1,4 +1,4 @@
-# Dad + Kids Bank Fishing Dashboard — v1.1.0
+# Dad + Kids Bank Fishing Dashboard — v1.1.1
 
 A phone-first static fishing dashboard built for bank fishing around Kingwood / north Houston.
 

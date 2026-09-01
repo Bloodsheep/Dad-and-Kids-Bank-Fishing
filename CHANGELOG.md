@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.1.1 — 2026-09-01
+### Fixed
+- Corrected light-mode text contrast across paragraphs, kid-plan steps, checklists, access notes, best-spot metadata, badges and footer text.
+- Updated the fishing-score ring track and center to follow the active display theme.
+- Improved placeholder contrast in Bright mode.
+- Bumped the offline/service-worker cache so phones receive the corrected stylesheet after deployment.
+
 ## v1.1.0 — 2026-09-01
 ### Added
 - Auto brightness/display control with Auto, Bright and Dim modes.
