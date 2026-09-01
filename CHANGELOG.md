@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.1.0 — 2026-09-01
+### Added
+- Auto brightness/display control with Auto, Bright and Dim modes.
+- Auto mode uses sunrise/sunset when available for the selected location on Today, with a time-of-day fallback.
+- Three concise bank-fishing starting areas for every location: Start Here, Try Next and Backup.
+- Each bank area includes why to fish it, likely targets and a simple casting instruction.
+
+### Improved
+- Alexander Deussen Park now uses official seasonal hours: 6 AM–9 PM March–October and 6 AM–7 PM November–February.
+- River Grove access window now reflects the typical later Friday/weekend closing pattern in the planner.
+- Kept the interface intentionally simple and phone-first.
+
 ## v1.0.0 — 2026-09-01
 ### Added
 - Initial phone-first Dad + Kids Bank Fishing dashboard.

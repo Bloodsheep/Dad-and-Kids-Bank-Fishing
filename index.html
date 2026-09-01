@@ -17,7 +17,10 @@
         <h1>Pick a place. Catch something. Make a memory.</h1>
         <p>Built for quick shore-fishing trips around Kingwood / north Houston — with practical early-morning and evening windows only.</p>
       </div>
-      <div class="version-pill">v1.0.0</div>
+      <div class="hero-tools">
+        <button id="brightnessBtn" class="version-pill display-button" type="button" aria-label="Change display brightness mode">🌗 Auto</button>
+        <div class="version-pill">v1.1.0</div>
+      </div>
     </div>
   </header>
 
@@ -91,6 +94,18 @@
       </article>
     </section>
 
+    <section class="panel best-spots-panel">
+      <div class="section-title">
+        <div>
+          <div class="eyebrow">BEST BANK AREAS</div>
+          <h2>Where I would start</h2>
+        </div>
+        <span class="muted">Start → Move → Backup</span>
+      </div>
+      <p class="lead compact">These are practical starting areas inside the selected park, not secret GPS holes. Start with the easiest high-percentage structure, then move if the rods stay quiet.</p>
+      <div id="bestSpots" class="spot-grid"></div>
+    </section>
+
     <section class="panel">
       <div class="section-title">
         <div>
@@ -160,7 +175,7 @@
   </main>
 
   <footer>
-    Dad + Kids Bank Fishing • v1.0.0 • Weather powered by Open-Meteo • Built for phone use
+    Dad + Kids Bank Fishing • v1.1.0 • Weather powered by Open-Meteo • Built for phone use
   </footer>
 
   <script src="app.js"></script>
